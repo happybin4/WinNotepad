@@ -59,22 +59,74 @@ namespace WinNotepad
 
         private void UpdateText()
         {
-            string FileName = editingFileName.Substring(editingFileName.LastIndexOf('\\') + 1);
-            
-            if (dirty)
-                this.Text = string.Format(dirtyText, FileName);
+            string fileNm;
+            if (string.IsNullOrEmpty(editingFileName))
+            {
+                fileNm = "제목없음";
+            }
             else
-                this.Text = string.Format(notDirtyText, FileName);
+            {
+                int idx = editingFileName.LastIndexOf('\\') + 1;
+                fileNm = editingFileName.Substring(idx);
+            }
+
+            if (dirty)
+                this.Text = string.Format(dirtyText, fileNm);
+            else
+                this.Text = string.Format(notDirtyText, fileNm);
         }
+    
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            if(! dirty)
+            if(!dirty)
             {
                 dirty = true;
                 UpdateText();
             }
             
+        }
+
+        private void 저장ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveFileDialog1.Filter = "txt files(*.txt)|*.txt|All Files (*.*)|*.*";
+            saveFileDialog1.FilterIndex = 1;
+            if (string.IsNullOrEmpty(editingFileName))
+            {
+                다른이름으로저장ToolStripMenuItem_Click(null, null);
+            }
+            else
+            {
+                //그 파일명으로 파일 덮어쓰기
+                SaveFile(editingFileName);
+            }
+        }
+
+        private void SaveFile(string fileName)
+        {
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(fileName, false, Encoding.Default))
+                {
+                    sw.Write(textBox1.Text);
+                    sw.Flush();
+                }
+                dirty = false;
+                UpdateText();
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.Message);
+            }
+        }
+
+        private void 다른이름으로저장ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                editingFileName = saveFileDialog1.FileName;
+                SaveFile(saveFileDialog1.FileName);
+            }
         }
     }
 }
